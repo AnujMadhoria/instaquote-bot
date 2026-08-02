@@ -3,7 +3,7 @@ name: Daily Instagram Post
 on:
   schedule:
     # 09:00 IST = 03:30 UTC. Edit to taste — cron is in UTC.
-    - cron: "30 3 * * *"
+    - cron: "0 19 * * *"
   workflow_dispatch: {}  # lets you trigger it manually from the Actions tab
 
 permissions:
