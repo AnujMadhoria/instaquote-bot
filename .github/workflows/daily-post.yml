@@ -1,0 +1,47 @@
+name: Daily Instagram Post
+
+on:
+  schedule:
+    # 09:00 IST = 03:30 UTC. Edit to taste — cron is in UTC.
+    - cron: "30 3 * * *"
+  workflow_dispatch: {}  # lets you trigger it manually from the Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate today's post
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          IG_HANDLE: ${{ vars.IG_HANDLE }}
+        run: python generate.py
+
+      - name: Commit generated image
+        run: |
+          git config user.name "instaquote-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add output/
+          git diff --cached --quiet || git commit -m "chore: generate post $(date -u +%F)"
+          git push
+
+      - name: Publish to Instagram
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_BRANCH: ${{ github.ref_name }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+        run: python publish.py
