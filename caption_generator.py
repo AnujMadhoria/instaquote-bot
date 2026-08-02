@@ -2,8 +2,8 @@
 caption_generator.py
 
 Builds the Instagram caption + hashtags for a post. Works with zero API
-keys out of the box (template-based). If ANTHROPIC_API_KEY is set, it
-asks Claude to write a punchier, more varied caption instead.
+keys out of the box (template-based). If GEMINI_API_KEY is set, it
+asks gemini to write a punchier, more varied caption instead.
 """
 
 import os
@@ -48,14 +48,14 @@ def _template_caption(quote):
 
 
 def _ai_caption(quote):
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         return _template_caption(quote)
 
     try:
-        import anthropic
+        from google import genai
 
-        client = anthropic.Anthropic(api_key=api_key)
+        client = genai.Client(api_key=api_key)
         quote_text = (quote.get("highlight") or "") + " " + " ".join(quote["body_paragraphs"])
         attribution_note = f" (originally by {quote['attribution']}, credit them)" if quote.get("attribution") else ""
 
@@ -66,12 +66,11 @@ def _ai_caption(quote):
             "then 6-8 relevant hashtags on the last line. No emojis in every line — "
             "use them sparingly. Respond with ONLY the caption text, nothing else."
         )
-        msg = client.messages.create(
-            model="claude-sonnet-4-6",
-            max_tokens=300,
-            messages=[{"role": "user", "content": prompt}],
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
         )
-        text = "".join(b.text for b in msg.content if hasattr(b, "text")).strip()
+        text = (response.text or "").strip()
         return text or _template_caption(quote)
     except Exception:
         return _template_caption(quote)
