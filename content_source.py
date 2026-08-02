@@ -88,17 +88,17 @@ def fetch_public_domain_snippet():
 
 
 def generate_ai_quote():
-    """Generate an original short affirmation/quote via the Anthropic API.
-    Requires ANTHROPIC_API_KEY. Falls back to a local list if unset/unavailable.
+    """Generate an original short affirmation/quote via the Gemini API.
+    Requires GEMINI_API_KEY. Falls back to a local list if unset/unavailable.
     """
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         return random.choice(LOCAL_AI_FALLBACK)
 
     try:
-        import anthropic
+        from google import genai
 
-        client = anthropic.Anthropic(api_key=api_key)
+        client = genai.Client(api_key=api_key)
         prompt = (
             "Write one short, original manifestation/affirmation-style quote "
             "in the tone of a viral Instagram 'good news is coming' post. "
@@ -108,12 +108,11 @@ def generate_ai_quote():
             "Keep it warm, hopeful, and universal — no specific names, no "
             "religious claims, no financial/medical promises."
         )
-        msg = client.messages.create(
-            model="claude-sonnet-4-6",
-            max_tokens=200,
-            messages=[{"role": "user", "content": prompt}],
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
         )
-        text = "".join(b.text for b in msg.content if hasattr(b, "text")).strip()
+        text = (response.text or "").strip()
         text = text.replace("```json", "").replace("```", "").strip()
         data = json.loads(text)
         if "highlight" in data and "body" in data:
