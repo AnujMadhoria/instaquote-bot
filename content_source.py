@@ -5,7 +5,7 @@ Produces the text content for a post. Mixes two sources, chosen at random
 each run:
 
   1. "ai"        — an original short affirmation/quote generated fresh by
-                    an LLM (Anthropic API). No copyright risk since it's
+                    an LLM (gemini API). No copyright risk since it's
                     newly generated text.
 
   2. "public_domain" — a short excerpt (2-4 lines) pulled from PoetryDB
